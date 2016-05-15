@@ -45,7 +45,7 @@ export default class App extends Component {
         <Navbar>
           <Navbar.Header>
             <Navbar.Brand>
-              <IndexLink to="/" activeClassName="active">{config.app.title}</IndexLink>
+              <IndexLink to="/" activeClassName="active" style={{paddingLeft: '20px'}}>{config.app.title}</IndexLink>
             </Navbar.Brand>
           </Navbar.Header>
           <Nav>
