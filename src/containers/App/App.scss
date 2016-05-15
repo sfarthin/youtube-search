@@ -1,18 +1,38 @@
 @import "../../theme/variables.scss";
 
+$nav-highlight-color: #337ab7;
+
 .app {
   nav :global(.fa) {
     font-size: 2em;
     line-height: 20px;
   }
-  :global(.navbar-nav > li.active > a, .navbar-brand) {
-    color: $brand-primary;
+
+  // nav items
+  :global(.navbar-default .navbar-brand), :global(.navbar-default .navbar-nav > li > a) {
+
+    color: #777;
+    &:hover {
+      $highligh-color: lighten($nav-highlight-color, 15%);
+
+      color: lighten($highligh-color, 15%);
+
+      :global(.badge) {
+        background-color: lighten($highligh-color, 15%);;
+      }
+    }
+  }
+
+  // Active nav items
+  :global(.navbar-default .navbar-brand.active), :global(.navbar-default .navbar-nav > li.active > a) {
+    color: $nav-highlight-color;
+
+
+    :global(.badge) {
+      background-color: $nav-highlight-color;
+    }
   }
 }
-//
-// .activeLink {
-//
-// }
 
 .appContent {
   margin: 50px 0; // for fixed navbar

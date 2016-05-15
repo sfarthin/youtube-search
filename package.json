@@ -112,6 +112,7 @@
     "invariant": "^2.2.0",
     "less": "^2.5.3",
     "less-loader": "^2.2.1",
+    "lodash": "^4.12.0",
     "lru-memoize": "^1.0.0",
     "map-props": "^1.0.0",
     "multireducer": "^2.0.0",

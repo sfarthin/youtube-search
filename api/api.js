@@ -33,6 +33,7 @@ app.use((req, res) => {
   if (action) {
     action(req, params)
       .then((result) => {
+        console.log(result);
         if (result instanceof Function) {
           result(res);
         } else {
@@ -66,7 +67,7 @@ if (config.apiPort) {
   });
 
   io.on('connection', (socket) => {
-    socket.emit('news', {msg: `'Hello World!' from server`});
+    // socket.emit('news', {msg: `'Hello World!' from server`});
 
     socket.on('history', () => {
       for (let index = 0; index < bufferSize; index++) {

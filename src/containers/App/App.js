@@ -6,7 +6,8 @@ import Navbar from 'react-bootstrap/lib/Navbar';
 import Nav from 'react-bootstrap/lib/Nav';
 import NavItem from 'react-bootstrap/lib/NavItem';
 import Helmet from 'react-helmet';
-// import { isLoaded as isInfoLoaded, load as loadInfo } from 'redux/modules/info';
+import { isLoaded as isFavoritesLoaded, load as loadFavorites } from 'redux/modules/favorites';
+import _ from 'lodash';
 // import { isLoaded as isAuthLoaded, load as loadAuth, logout } from 'redux/modules/auth';
 // import { InfoBar } from 'components';
 import { push } from 'react-router-redux';
@@ -14,24 +15,20 @@ import config from '../../config';
 import { asyncConnect } from 'redux-async-connect';
 
 @asyncConnect([{
-  promise: () => {
-    const promises = [];
-
-    // if (!isInfoLoaded(getState())) {
-    //   promises.push(dispatch(loadInfo()));
-    // }
-
-    return Promise.all(promises);
+  promise: ({store: {dispatch, getState}}) => {
+    if (!isFavoritesLoaded(getState())) {
+      return dispatch(loadFavorites());
+    }
   }
 }])
 @connect(
-  // state => ({user: state.auth.user}),
-  () => ({}),
+  (state) => ({favorites: state.favorites}),
   {pushState: push})
 export default class App extends Component {
   static propTypes = {
     children: PropTypes.object.isRequired,
-    pushState: PropTypes.func.isRequired
+    pushState: PropTypes.func.isRequired,
+    favorites: PropTypes.object.isRequired
   };
 
   static contextTypes = {
@@ -48,12 +45,12 @@ export default class App extends Component {
         <Navbar>
           <Navbar.Header>
             <Navbar.Brand>
-              <IndexLink to="/">{config.app.title}</IndexLink>
+              <IndexLink to="/" activeClassName="active">{config.app.title}</IndexLink>
             </Navbar.Brand>
           </Navbar.Header>
           <Nav>
             <LinkContainer to="/favorites">
-              <NavItem eventKey={2}>Favorites</NavItem>
+              <NavItem eventKey={2}>Favorites <span className="badge">{_.size(this.props.favorites.data)}</span></NavItem>
             </LinkContainer>
           </Nav>
         </Navbar>

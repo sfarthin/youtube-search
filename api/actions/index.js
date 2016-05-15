@@ -1,1 +1,1 @@
-export loadInfo from './favorites';
+export loadFavorites from './favorites';
