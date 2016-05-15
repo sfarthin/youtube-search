@@ -17,7 +17,7 @@ const io = new SocketIo(server);
 io.path('/ws');
 
 app.use(session({
-  secret: 'react and redux rule!!!!',
+  secret: 'ojidq982hrf9fbiuadbfa',
   resave: false,
   saveUninitialized: false,
   cookie: { maxAge: 60000 }
