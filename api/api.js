@@ -33,7 +33,6 @@ app.use((req, res) => {
   if (action) {
     action(req, params)
       .then((result) => {
-        console.log(result);
         if (result instanceof Function) {
           result(res);
         } else {

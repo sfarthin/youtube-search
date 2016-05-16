@@ -10,7 +10,6 @@ import { isLoaded as isFavoritesLoaded, load as loadFavorites } from 'redux/modu
 import _ from 'lodash';
 // import { isLoaded as isAuthLoaded, load as loadAuth, logout } from 'redux/modules/auth';
 // import { InfoBar } from 'components';
-import { push } from 'react-router-redux';
 import config from '../../config';
 import { asyncConnect } from 'redux-async-connect';
 
@@ -23,11 +22,10 @@ import { asyncConnect } from 'redux-async-connect';
 }])
 @connect(
   (state) => ({favorites: state.favorites}),
-  {pushState: push})
+  {})
 export default class App extends Component {
   static propTypes = {
     children: PropTypes.object.isRequired,
-    pushState: PropTypes.func.isRequired,
     favorites: PropTypes.object.isRequired
   };
 
