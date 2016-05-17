@@ -15,11 +15,11 @@ export default class VideoDetailsBody extends Component {
   render() {
     const {video, stats, videoid} = this.props;
     const snippet = video.snippet;
-
     return (
       <div className="media-body" style={{ paddingLeft: 10 }}>
-        <h4><Link to={'/view/' + videoid}>{snippet.title}</Link></h4>
-        {snippet.description && <p>{map(snippet.description.split(/\n/), (seg) => <span>{seg}<br /></span>)}</p>}
+        <h4 style={{marginBottom: 5}}><Link to={'/view/' + videoid}>{snippet.title}</Link></h4>
+        <h5 style={{marginTop: 0, marginBottom: 20}}>{snippet.channelTitle}</h5>
+        {snippet.description && <p>{map(snippet.description.split(/\n/), (seg, key) => <span key={key}>{seg}<br /></span>)}</p>}
         <p><i>Published {moment(snippet.publishedAt).fromNow()}.</i></p>
         { stats && <p>{map(stats, (s, key) => <span key={key} style={{ paddingRight: 30 }}><strong>{key.replace('Count', 's')}</strong>: {numeral(s).format('0,0')}</span>)}</p>}
       </div>

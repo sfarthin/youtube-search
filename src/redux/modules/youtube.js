@@ -1,4 +1,4 @@
-import { zipObject, map } from 'lodash';
+import { zipObject, map, clone } from 'lodash';
 
 const SEARCH = 'youtube/SEARCH';
 const SEARCH_SUCCESS = 'youtube/SEARCH_SUCCESS';
@@ -16,29 +16,38 @@ const COMMENTS = 'youtube/COMMENTS';
 const COMMENTS_SUCCESS = 'youtube/COMMENTS_SUCCESS';
 const COMMENTS_FAIL = 'youtube/COMMENTS_FAIL';
 
+const MORECOMMENTS = 'youtube/MORECOMMENTS';
+const MORECOMMENTS_SUCCESS = 'youtube/MORECOMMENTS_SUCCESS';
+const MORECOMMENTS_FAIL = 'youtube/MORECOMMENTS_FAIL';
+
 const initialState = {
   loaded: false
 };
 
 export default function youtube(state = initialState, action = {}) {
   switch (action.type) {
+    case MORECOMMENTS_SUCCESS:
+      const mComments = clone(state.moreComments);
+      mComments[action.result.pageToken] = action.result;
+      return {
+        ...state,
+        moreComments: mComments
+      };
     case COMMENTS:
       return {
         ...state,
         comments: null,
-        commentsLoading: true
+        moreComments: {}
       };
     case COMMENTS_SUCCESS:
       return {
         ...state,
-        comments: action.result,
-        commentsLoading: false
+        comments: action.result
       };
     case COMMENTS_FAIL:
       return {
         ...state,
-        comments: null,
-        commentsLoading: false
+        comments: null
       };
     case STATS_SUCCESS:
       const keys = map(action.result.items, (i) => i.id);
@@ -50,7 +59,6 @@ export default function youtube(state = initialState, action = {}) {
     case DETAILS_SUCCESS:
       return {
         ...state,
-        searching: true,
         details: action.result
       };
     case SEARCH:
@@ -107,5 +115,12 @@ export function comments(id) {
   return {
     types: [ COMMENTS, COMMENTS_SUCCESS, COMMENTS_FAIL ],
     promise: (client) => client.post('/youTubeComments', {data: {id: id}})
+  };
+}
+
+export function moreComments(id, pageToken) {
+  return {
+    types: [ MORECOMMENTS, MORECOMMENTS_SUCCESS, MORECOMMENTS_FAIL ],
+    promise: (client) => client.post('/youTubeComments', {data: {id: id, pageToken: pageToken}})
   };
 }

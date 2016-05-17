@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import Helmet from 'react-helmet';
 import queryString from 'query-string';
-import _, { map, debounce } from 'lodash';
+import { size, extend, map, debounce, pick } from 'lodash';
 import numeral from 'numeral';
 import { connect } from 'react-redux';
 import { search as youTubeSearch } from 'redux/modules/youtube';
@@ -42,7 +42,7 @@ export default class Search extends Component {
 
   componentWillMount() {
     this.setState({
-      query: queryString.parse(this.props.location.search),
+      query: pick(this.props.youtube.result, ['q', 'order', 'page', 'pageToken']),
       debounceYouTubeSearch: debounce(this.search.bind(this), 600)
     });
   }
@@ -61,6 +61,7 @@ export default class Search extends Component {
 
   /* Search without reloading component */
   search() {
+    console.log('asdasd', this.props.youtube);
     if (!this.props.youtube.searching && !isSearchLoaded(this.props.youtube, this.state.query)) this.props.youTubeSearch(this.state.query);
     this.setState({ isTyping: false });
   }
@@ -77,7 +78,7 @@ export default class Search extends Component {
   /* replace querystring without calling a location change */
   changeQueryString(query) {
     let querystring = '';
-    if (_.size(query)) querystring = '?' + queryString.stringify(query);
+    if (size(query)) querystring = '?' + queryString.stringify(query);
 
     // To have meaningful back and forward points.
     if (this.state.isTyping) {
@@ -91,10 +92,12 @@ export default class Search extends Component {
   * When a user starts typing, lets show instant results.
   **/
   keywordChange(e) {
+    console.log('type', this.state.debounceYouTubeSearch);
+
     const keyword = e.target.value;
 
     // Determine new querystring
-    const query = _.extend({}, this.state.query, {q: keyword});
+    const query = extend({}, this.state.query, {q: keyword});
     if (!query.q) delete query.q;
     delete query.page;
     delete query.pageToken;
@@ -111,7 +114,7 @@ export default class Search extends Component {
     const order = e.target.value;
 
     // Determine new querystring
-    const query = _.extend({}, this.state.query, {order: order});
+    const query = extend({}, this.state.query, {order: order});
     if (query.order === 'date') delete query.order;
     delete query.page;
     delete query.pageToken;
@@ -122,7 +125,7 @@ export default class Search extends Component {
 
   changePage(page, pageToken) {
     return function() {
-      const query = _.extend({}, this.state.query, { page: page, pageToken: pageToken });
+      const query = extend({}, this.state.query, { page: page, pageToken: pageToken });
       this.setState({ query: query });
       this.props.pushState(this.props.location.pathname + '?' + queryString.stringify(query));
     }.bind(this);
@@ -137,7 +140,7 @@ export default class Search extends Component {
     const prevButton = youtube && youtube.result && youtube.result.prevPageToken && <div><button className="btn btn-primary" onClick={this.changePage(page - 1, youtube.result.prevPageToken)} style={{ float: 'left' }}><span className="fa fa-arrow-left" /> Previous Page</button></div>;
 
     let videoList = null;
-    if (youtube.result && !!_.size(youtube.result.items)) {
+    if (youtube.result && !!size(youtube.result.items)) {
       videoList = (
         <ul className="media-list" style={{ clear: 'both', paddingTop: 30 }}>
          { map(youtube.result.items, (item) => <VideoDetails video={item} stats={youtube.stats && youtube.stats[item.id.videoId]} videoid={item.id.videoId} key={item.id.videoId} />) }
@@ -146,14 +149,14 @@ export default class Search extends Component {
     }
 
     let resultsText = <p style={{ paddingTop: 30 }}>&nbsp;</p>;
-    if (!youtube.searching && youtube.result && !!_.size(youtube.result.items)) {
+    if (!youtube.searching && youtube.result && !!size(youtube.result.items)) {
       resultsText = <p style={{ paddingTop: 30 }}>{numeral(youtube.result.pageInfo.totalResults).format('0,0')} videos found. Page {page} of {numeral(numPages).format('0,0')}.</p>;
     }
 
     let statusText = null;
     if (youtube.search) {
       statusText = <p style={{ paddingTop: 30 }}><span className="fa fa-refresh fa-spin fa-fw" /> Searching...</p>;
-    } else if (!youtube.searching && youtube.result && !_.size(youtube.result.items)) {
+    } else if (!youtube.searching && youtube.result && !size(youtube.result.items)) {
       statusText = <p>No Videos found</p>;
     }
 

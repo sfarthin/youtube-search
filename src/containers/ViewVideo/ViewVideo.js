@@ -2,9 +2,9 @@ import React, { Component, PropTypes } from 'react';
 import { asyncConnect } from 'redux-async-connect';
 import { connect } from 'react-redux';
 import { find } from 'lodash';
-import { details as youTubeDetails, comments as youTubeComments } from 'redux/modules/youtube';
+import { details as youTubeDetails } from 'redux/modules/youtube';
 
-import { VideoDetailsBody } from 'components';
+import { VideoDetailsBody, Comments } from 'components';
 
 function findVideoFromSearch(state, videoid) {
   return state.youtube && state.youtube.result && find(state.youtube.result.items, (i) => i.id.videoId === videoid);
@@ -12,6 +12,7 @@ function findVideoFromSearch(state, videoid) {
 
 @asyncConnect([{
   promise: ({params, store: {dispatch, getState}}) => {
+    // If we do not have at least a snippet from the search results, then load the details before showing.
     const state = getState();
     const video = findVideoFromSearch(state, params.videoid);
     const stats = state.youtube.stats && state.youtube.stats[params.videoid];
@@ -27,9 +28,7 @@ function findVideoFromSearch(state, videoid) {
     if (videoFromDetails) {
       return {
         video: videoFromDetails,
-        stats: videoFromDetails.statistics,
-        commentsLoading: state.youtube.commentsLoading,
-        comments: state.youtube.comments
+        stats: videoFromDetails.statistics
       };
     }
     // Try from search results as a backup
@@ -38,19 +37,16 @@ function findVideoFromSearch(state, videoid) {
     return {
       video: video,
       stats: stats,
-      commentsLoading: state.youtube.commentsLoading,
-      comments: state.youtube.comments,
       fromSearchResults: 1
     };
   },
-  { youTubeDetails, youTubeComments }
+  { youTubeDetails }
 )
 export default class ViewVideo extends Component {
   static propTypes = {
     params: PropTypes.object.isRequired,
     video: PropTypes.object.isRequired,
     stats: PropTypes.object.isRequired,
-    comments: PropTypes.object,
     fromSearchResults: PropTypes.number
   }
 
@@ -59,26 +55,22 @@ export default class ViewVideo extends Component {
     if (this.props.fromSearchResults) {
       this.props.youTubeDetails([this.props.params.videoid]);
     }
-
-    // Lets grab the comments
-    this.props.youTubeComments(this.props.params.videoid);
   }
 
   render() {
     const { video, stats, params } = this.props;
-    console.log('fromSearchResults', this.props.fromSearchResults, this.props.comments);
     return (
       <div className="container">
         <div className="row">
           <div className="col-md-8">
             <iframe width="560" height="315" src={'https://www.youtube.com/embed/' + params.videoid} frameBorder="0" allowFullScreen style={{ paddingBottom: 20, display: 'block', margin: 'auto'}} />
             <div style={{ display: 'block', width: 560, margin: 'auto', paddingBottom: 30 }}>
-              <VideoDetailsBody video={video} stats={stats} videoid={video.id} embed={1} />
+              <VideoDetailsBody video={video} stats={stats} videoid={params.videoid} embed={1} />
             </div>
           </div>
           <div className="col-md-4">
             <div style={{ maxWidth: 560, margin: 'auto' }}>
-              <p>comments</p>
+              { stats.commentCount > 0 ? <Comments videoid={params.videoid} /> : <p>There are no comments for this video.</p> }
             </div>
           </div>
         </div>

@@ -50,7 +50,7 @@ export default class API {
     }
 
     makeCommentsUrl(opts) {
-      const payload = { videoId: opts.id, part: 'snippet,replies', key: API_KEY };
+      const payload = { videoId: opts.id, pageToken: opts.pageToken, part: 'snippet,replies', key: API_KEY };
       return 'https://www.googleapis.com/youtube/v3/commentThreads?' + queryString.stringify(payload);
     }
 

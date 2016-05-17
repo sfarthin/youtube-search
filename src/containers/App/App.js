@@ -7,7 +7,7 @@ import Nav from 'react-bootstrap/lib/Nav';
 import NavItem from 'react-bootstrap/lib/NavItem';
 import Helmet from 'react-helmet';
 import { isLoaded as isFavoritesLoaded, load as loadFavorites } from 'redux/modules/favorites';
-import _ from 'lodash';
+import { size, pick } from 'lodash';
 // import { isLoaded as isAuthLoaded, load as loadAuth, logout } from 'redux/modules/auth';
 // import { InfoBar } from 'components';
 import config from '../../config';
@@ -21,12 +21,14 @@ import { asyncConnect } from 'redux-async-connect';
   }
 }])
 @connect(
-  (state) => ({favorites: state.favorites}),
+  (state) => ({ favorites: state.favorites, search: state.youtube.result }),
   {})
 export default class App extends Component {
   static propTypes = {
+    search: PropTypes.object,
     children: PropTypes.object.isRequired,
-    favorites: PropTypes.object.isRequired
+    favorites: PropTypes.object.isRequired,
+    location: PropTypes.object.isRequired
   };
 
   static contextTypes = {
@@ -35,6 +37,7 @@ export default class App extends Component {
 
   render() {
     const styles = require('./App.scss');
+    const query = pick(this.props.search, ['q', 'order', 'page', 'pageToken']);
 
     return (
       <div className={styles.app}>
@@ -43,12 +46,12 @@ export default class App extends Component {
         <Navbar>
           <Navbar.Header>
             <Navbar.Brand>
-              <IndexLink to="/" activeClassName="active" style={{paddingLeft: '20px'}}>{config.app.title}</IndexLink>
+              <IndexLink to={{ pathname: '/', query }} activeClassName="active" style={{paddingLeft: '20px'}}>{config.app.title}</IndexLink>
             </Navbar.Brand>
           </Navbar.Header>
           <Nav>
             <LinkContainer to="/favorites">
-              <NavItem eventKey={2}>Favorites <span className="badge">{_.size(this.props.favorites.data)}</span></NavItem>
+              <NavItem eventKey={2}>Favorites <span className="badge">{size(this.props.favorites.data)}</span></NavItem>
             </LinkContainer>
           </Nav>
         </Navbar>
