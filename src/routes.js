@@ -5,6 +5,7 @@ import {
     App,
     Search,
     Favorites,
+    ViewVideo,
     NotFound,
   } from 'containers';
 
@@ -31,11 +32,13 @@ export default () => {
    */
   return (
     <Route path="/" component={App}>
+
       { /* Home (main) route */ }
       <IndexRoute component={Search}/>
 
       { /* Routes */ }
       <Route path="favorites" component={Favorites} />
+      <Route path="view/:videoid" component={ViewVideo} />
 
       { /* Catch all route */ }
       <Route path="*" component={NotFound} status={404} />

@@ -1,2 +1,2 @@
 export loadFavorites from './favorites';
-export {youTubeSearch, youTubeStats} from './youtube';
+export {youTubeSearch, youTubeStats, youTubeDetails, youTubeComments} from './youtube';

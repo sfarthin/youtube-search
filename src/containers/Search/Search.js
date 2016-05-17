@@ -1,19 +1,28 @@
 import React, { Component, PropTypes } from 'react';
 import Helmet from 'react-helmet';
 import queryString from 'query-string';
-import _, { debounce } from 'lodash';
+import _, { map, debounce } from 'lodash';
 import numeral from 'numeral';
-import moment from 'moment';
 import { connect } from 'react-redux';
 import { search as youTubeSearch } from 'redux/modules/youtube';
 import { asyncConnect } from 'redux-async-connect';
 import { push as pushState } from 'react-router-redux';
 
+import { VideoDetails } from 'components';
+
+function isEqualQuery(query1, query2) {
+  return query1.q === query2.q && query1.page === query2.page && query1.order === query2.order;
+}
+
+function isSearchLoaded(youtube, query) {
+  return youtube && youtube.result && isEqualQuery(youtube.result, query);
+}
+
 @asyncConnect([{
   promise: ({store: {dispatch, getState}}) => {
     const youtube = getState().youtube;
     const query = getState().routing.locationBeforeTransitions.query;
-    if (!youtube || !youtube.result || query.q !== youtube.result.q || query.page !== youtube.result.page) {
+    if (!isSearchLoaded(youtube, query)) {
       return dispatch(youTubeSearch(query));
     }
   }
@@ -32,43 +41,50 @@ export default class Search extends Component {
   }
 
   componentWillMount() {
-    const debounceYouTubeSearch = debounce(function(query) {
-      this.props.youTubeSearch(query);
-      this.props.pushState(this.props.location.pathname + '?' + queryString.stringify(this.state.query));
-    }.bind(this), 300);
-
     this.setState({
       query: queryString.parse(this.props.location.search),
-      debounceYouTubeSearch: debounceYouTubeSearch
+      debounceYouTubeSearch: debounce(this.search.bind(this), 600)
     });
   }
 
-  // componentWillReceiveProps(props) {
-  //   console.log(this.state.typing);
-  //   if (!this.state.typing && props.location.query.q !== this.state.query.q) {
-  //     this.setState({ query: queryString.parse(this.props.location.search) });
-  //   }
-  // }
-
-  submit(e) {
-    e.preventDefault();
-    this.props.youTubeSearch(this.state.query);
+  componentDidMount() {
+    this._popState = function() {
+      this.props.pushState(this.props.location.pathname + document.location.search);
+      this.setState({ query: queryString.parse(document.location.search) });
+    }.bind(this);
+    window.addEventListener('popstate', this._popState);
   }
 
-  /**
-  * Given an object update the URL and youtube results without rerendering the page.
-  **/
+  componentWillUnmount() {
+    window.removeEventListener('popstate', this._popState);
+  }
+
+  /* Search without reloading component */
+  search() {
+    if (!this.props.youtube.searching && !isSearchLoaded(this.props.youtube, this.state.query)) this.props.youTubeSearch(this.state.query);
+    this.setState({ isTyping: false });
+  }
+
+  /* On form submit with Enter keypress */
+  submit(e) {
+    e.preventDefault();
+    if (!this.props.youtube.searching && !isSearchLoaded(this.props.youtube, this.state.query)) {
+      this.changeQueryString(this.state.query);
+      this.search();
+    }
+  }
+
+  /* replace querystring without calling a location change */
   changeQueryString(query) {
-    // Set the state
-    this.setState({ query: query });
-
-    // Send a xhr
-    this.state.debounceYouTubeSearch(query);
-
-    // Set the browser querystring without effecting react rendering.
     let querystring = '';
     if (_.size(query)) querystring = '?' + queryString.stringify(query);
-    history.replaceState({}, '', this.props.location.pathname + querystring);
+
+    // To have meaningful back and forward points.
+    if (this.state.isTyping) {
+      history.replaceState({}, '', this.props.location.pathname + querystring);
+    } else {
+      history.pushState({}, '', this.props.location.pathname + querystring);
+    }
   }
 
   /**
@@ -81,8 +97,14 @@ export default class Search extends Component {
     const query = _.extend({}, this.state.query, {q: keyword});
     if (!query.q) delete query.q;
     delete query.page;
+    delete query.pageToken;
 
+    // Replace querystring as we type
     this.changeQueryString(query);
+
+    // Set local state and set up debouncer, but don't reload whole component.
+    this.setState({ query: query, isTyping: true });
+    this.state.debounceYouTubeSearch(query);
   }
 
   orderChange(e) {
@@ -92,13 +114,48 @@ export default class Search extends Component {
     const query = _.extend({}, this.state.query, {order: order});
     if (query.order === 'date') delete query.order;
     delete query.page;
+    delete query.pageToken;
 
-    this.changeQueryString(query);
+    this.setState({ query: query });
+    this.props.pushState(this.props.location.pathname + '?' + queryString.stringify(query));
+  }
+
+  changePage(page, pageToken) {
+    return function() {
+      const query = _.extend({}, this.state.query, { page: page, pageToken: pageToken });
+      this.setState({ query: query });
+      this.props.pushState(this.props.location.pathname + '?' + queryString.stringify(query));
+    }.bind(this);
   }
 
   render() {
     const styles = require('./Search.scss');
     const youtube = this.props.youtube;
+    const numPages = youtube.result && youtube.result.pageInfo.totalResults / youtube.result.pageInfo.resultsPerPage;
+    const page = (youtube.result && youtube.result.page ? Number(youtube.result.page) : 1);
+    const nextButton = youtube && youtube.result && youtube.result.nextPageToken && <div><button className="btn btn-primary" onClick={this.changePage(page + 1, youtube.result.nextPageToken)} style={{ float: 'right' }}>Next Page <span className="fa fa-arrow-right" /></button></div>;
+    const prevButton = youtube && youtube.result && youtube.result.prevPageToken && <div><button className="btn btn-primary" onClick={this.changePage(page - 1, youtube.result.prevPageToken)} style={{ float: 'left' }}><span className="fa fa-arrow-left" /> Previous Page</button></div>;
+
+    let videoList = null;
+    if (youtube.result && !!_.size(youtube.result.items)) {
+      videoList = (
+        <ul className="media-list" style={{ clear: 'both', paddingTop: 30 }}>
+         { map(youtube.result.items, (item) => <VideoDetails video={item} stats={youtube.stats && youtube.stats[item.id.videoId]} videoid={item.id.videoId} key={item.id.videoId} />) }
+        </ul>
+       );
+    }
+
+    let resultsText = <p style={{ paddingTop: 30 }}>&nbsp;</p>;
+    if (!youtube.searching && youtube.result && !!_.size(youtube.result.items)) {
+      resultsText = <p style={{ paddingTop: 30 }}>{numeral(youtube.result.pageInfo.totalResults).format('0,0')} videos found. Page {page} of {numeral(numPages).format('0,0')}.</p>;
+    }
+
+    let statusText = null;
+    if (youtube.search) {
+      statusText = <p style={{ paddingTop: 30 }}><span className="fa fa-refresh fa-spin fa-fw" /> Searching...</p>;
+    } else if (!youtube.searching && youtube.result && !_.size(youtube.result.items)) {
+      statusText = <p>No Videos found</p>;
+    }
 
     return (
       <div className={styles.searchPage + ' container'}>
@@ -106,7 +163,10 @@ export default class Search extends Component {
           <form className="form-inline" onSubmit={this.submit.bind(this)}>
             <div className="form-group">
               <input
-                type="text"
+                type="search"
+                name="search"
+                autoSave="youtubeSearch"
+                results="10"
                 placeholder="Enter your search query..."
                 className={[styles.searchBox, 'form-control'].join(' ')}
                 onChange={this.keywordChange.bind(this)}
@@ -122,35 +182,14 @@ export default class Search extends Component {
               </select>
             </div>
           </form>
-          { youtube.searching && <p style={{ paddingTop: 30 }}><span className="fa fa-refresh fa-spin fa-3x fa-fw" /> Searching...</p> }
-          { !youtube.searching && youtube.result && !!_.size(youtube.result.items) && <p style={{ paddingTop: 30 }}>{numeral(youtube.result.pageInfo.totalResults).format('0,0')} videos found</p> }
+          { resultsText }
           <hr />
-          { !youtube.searching && youtube.result && !_.size(youtube.result.items) && (
-            <p>No Videos found</p>
-          )}
-          { youtube.result && !!_.size(youtube.result.items) && (
-            <ul className="media-list">
-              {_.map(youtube.result.items, function(item) {
-                const snippet = item.snippet;
-                const img = item.snippet.thumbnails.medium;
-                const stats = youtube.stats && youtube.stats[item.id.videoId];
-
-                return (
-                  <li className="media">
-                    <div className="media-left">
-                      <img className="media-object" src={img.url} height={img.height} width={img.width} />
-                    </div>
-                    <div className="media-body" style={{ paddingLeft: 10 }}>
-                      <h4><a>{snippet.title}</a></h4>
-                      {snippet.description && <p>{snippet.description}</p>}
-                      <p><i>Published {moment(snippet.publishedAt).fromNow()}.</i></p>
-                      { stats && <p>{_.map(stats, (s, key) => <span style={{ paddingRight: 30 }}><strong>{key.replace('Count', 's')}</strong>: {numeral(s).format('0,0')}</span>)}</p>}
-                    </div>
-                  </li>
-                );
-              }, this)}
-            </ul>
-          )}
+          { statusText }
+          { nextButton }
+          { prevButton }
+          { videoList }
+          { nextButton }
+          { prevButton }
       </div>
     );
   }

@@ -8,18 +8,50 @@ const DETAILS = 'youtube/DETAILS';
 const DETAILS_SUCCESS = 'youtube/DETAILS_SUCCESS';
 const DETAILS_FAIL = 'youtube/DETAILS_FAIL';
 
+const STATS = 'youtube/STATS';
+const STATS_SUCCESS = 'youtube/STATS_SUCCESS';
+const STATS_FAIL = 'youtube/STATS_FAIL';
+
+const COMMENTS = 'youtube/COMMENTS';
+const COMMENTS_SUCCESS = 'youtube/COMMENTS_SUCCESS';
+const COMMENTS_FAIL = 'youtube/COMMENTS_FAIL';
+
 const initialState = {
   loaded: false
 };
 
 export default function youtube(state = initialState, action = {}) {
   switch (action.type) {
-    case DETAILS_SUCCESS:
+    case COMMENTS:
+      return {
+        ...state,
+        comments: null,
+        commentsLoading: true
+      };
+    case COMMENTS_SUCCESS:
+      return {
+        ...state,
+        comments: action.result,
+        commentsLoading: false
+      };
+    case COMMENTS_FAIL:
+      return {
+        ...state,
+        comments: null,
+        commentsLoading: false
+      };
+    case STATS_SUCCESS:
       const keys = map(action.result.items, (i) => i.id);
       const values = map(action.result.items, (i) => i.statistics);
       return {
         ...state,
         stats: zipObject(keys, values)
+      };
+    case DETAILS_SUCCESS:
+      return {
+        ...state,
+        searching: true,
+        details: action.result
       };
     case SEARCH:
       return {
@@ -47,7 +79,6 @@ export default function youtube(state = initialState, action = {}) {
 
 export function search(opts) {
   return async (dispatch) => {
-    console.log(opts);
     // Get the search results.
     const result = await dispatch({
       types: [ SEARCH, SEARCH_SUCCESS, SEARCH_FAIL],
@@ -59,8 +90,22 @@ export function search(opts) {
 
     // Lets automatically get the stats for these search results.
     return await dispatch({
-      types: [ DETAILS, DETAILS_SUCCESS, DETAILS_FAIL],
+      types: [ STATS, STATS_SUCCESS, STATS_FAIL],
       promise: (client) => client.post('/youTubeStats', {data: ids})
     });
+  };
+}
+
+export function details(ids) {
+  return {
+    types: [ DETAILS, DETAILS_SUCCESS, DETAILS_FAIL ],
+    promise: (client) => client.post('/youTubeDetails', {data: {ids: ids}})
+  };
+}
+
+export function comments(id) {
+  return {
+    types: [ COMMENTS, COMMENTS_SUCCESS, COMMENTS_FAIL ],
+    promise: (client) => client.post('/youTubeComments', {data: {id: id}})
   };
 }

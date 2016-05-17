@@ -5,4 +5,6 @@
  *
  */
 
-export InfoBar from './InfoBar/InfoBar';
+// export InfoBar from './InfoBar/InfoBar';
+export VideoDetails from './videoDetails';
+export VideoDetailsBody from './videoDetailsBody';

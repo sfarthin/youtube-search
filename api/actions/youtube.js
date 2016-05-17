@@ -8,3 +8,11 @@ export function youTubeSearch(req) {
 export function youTubeStats(req) {
   return api.stats(req.body);
 }
+
+export function youTubeDetails(req) {
+  return api.details(req.body);
+}
+
+export function youTubeComments(req) {
+  return api.comments(req.body);
+}
