@@ -1,11 +1,27 @@
-# React Redux Universal Hot Example
+# YouTube Search Example Web App
+[![build status](https://api.travis-ci.org/sfarthin/youtube-search.svg)](https://travis-ci.org/erikras/react-redux-universal-hot-example)
 
-[![build status](https://img.shields.io/travis/erikras/react-redux-universal-hot-example/master.svg?style=flat-square)](https://travis-ci.org/erikras/react-redux-universal-hot-example)
-[![Dependency Status](https://david-dm.org/erikras/react-redux-universal-hot-example.svg?style=flat-square)](https://david-dm.org/erikras/react-redux-universal-hot-example)
-[![devDependency Status](https://david-dm.org/erikras/react-redux-universal-hot-example/dev-status.svg?style=flat-square)](https://david-dm.org/erikras/react-redux-universal-hot-example#info=devDependencies)
-[![react-redux-universal channel on discord](https://img.shields.io/badge/discord-react--redux--universal%40reactiflux-brightgreen.svg?style=flat-square)](https://discord.gg/0ZcbPKXt5bZZb1Ko)
-[![Demo on Heroku](https://img.shields.io/badge/demo-heroku-brightgreen.svg?style=flat-square)](https://react-redux.herokuapp.com)
-[![PayPal donate button](https://img.shields.io/badge/donate-paypal-brightgreen.svg?style=flat-square)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=E2LK57ZQ9YRMN)
+This is a isomorphic react app written in ES6 and utilizes the YouTube Data API. All session and favorite data is stored on Redis. This app has a few core functions:
+
+### Search
+- Search by keyword
+- Sort by date, rating and relevance
+
+### Video Details
+- Video player
+- Meta information like comments, likes, dislikes, channel
+- Ability to add/remove from favorites (see below)
+
+### Favorite Videos
+- The list of videos the user has favorited
+- Favorite videos persist between browsing sessions
+- Favorites are kept in sync accross windows.
+
+This app is running on heroku: https://obscure-plateau-39114.herokuapp.com/
+
+Travis CI is being used: https://travis-ci.org/sfarthin/youtube-search .
+
+The documentation from the biolerplate has been retained below.
 
 ---
 
