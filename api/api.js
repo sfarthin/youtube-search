@@ -34,8 +34,10 @@ app.use((req, res) => {
   const {action, params} = mapUrl(actions, splittedUrlPath);
 
   if (action) {
-    if (req.session && !req.session.firstSeen) req.session.firstSeen = Date.now();
-    req.session.save();
+    if (req.session && !req.session.firstSeen) {
+      req.session.firstSeen = Date.now();
+      req.session.save();
+    }
 
     action(req, params)
       .then((result) => {
