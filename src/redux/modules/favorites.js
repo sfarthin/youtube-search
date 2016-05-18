@@ -1,4 +1,5 @@
 import { union, filter } from 'lodash';
+import { details } from './youtube';
 
 const LOAD = 'favorites/LOAD';
 const LOAD_SUCCESS = 'favorites/LOAD_SUCCESS';
@@ -66,6 +67,16 @@ export function load() {
   return {
     types: [LOAD, LOAD_SUCCESS, LOAD_FAIL],
     promise: (client) => client.get('/loadFavorites')
+  };
+}
+
+export function loadFull() {
+  return async (dispatch) => {
+    // Get the search results.
+    const ids = await dispatch(load());
+
+    // Lets pull all the youtube information.
+    return await dispatch(details(ids));
   };
 }
 

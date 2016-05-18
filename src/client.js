@@ -24,8 +24,6 @@ const history = syncHistoryWithStore(_browserHistory, store);
 function initSocket() {
   const socket = io('', {path: '/ws'});
   socket.on('realtime', (data) => {
-    console.log('got-favorites', data);
-    // socket.emit('my other event', { my: 'data from client' });
     store.dispatch({ type: 'REALTIME_FAVORITES_UPDATE', result: data });
   });
 

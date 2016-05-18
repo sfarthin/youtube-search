@@ -9,6 +9,8 @@ import http from 'http';
 import SocketIo from 'socket.io';
 import redis from './utils/redis';
 
+const RedisStore = require('connect-redis')(session);
+
 const pretty = new PrettyError();
 const app = express();
 
@@ -19,13 +21,7 @@ io.path('/ws');
 
 const sessionMiddleware = session({
   secret: 'ojidq982hrf9fbiuadbfa',
-  resave: false,
-  saveUninitialized: false,
-  store: new (require('express-sessions'))({
-      storage: 'redis',
-      instance: redis
-  }),
-  cookie: { maxAge: 60000 }
+  store: new RedisStore({ client: redis })
 });
 
 app.use(sessionMiddleware);
@@ -41,6 +37,7 @@ app.use((req, res) => {
   if (action) {
 
     if(!req.session.firstSeen) req.session.firstSeen = Date.now();
+    req.session.save();
 
     action(req, params)
       .then((result) => {

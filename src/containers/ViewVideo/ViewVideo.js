@@ -15,9 +15,9 @@ function findVideoFromSearch(state, videoid) {
   promise: ({params, store: {dispatch, getState}}) => {
     // If we do not have at least a snippet from the search results, then load the details before showing.
     const state = getState();
-    const video = findVideoFromSearch(state, params.videoid);
-    const stats = state.youtube.stats && state.youtube.stats[params.videoid];
-    if (!video || !stats) {
+    const videoFromSearch = findVideoFromSearch(state, params.videoid);
+    const videoFromVideosLoaded = find(state.youtube.videosLoaded, (v) => v.id === params.videoid);
+    if (!videoFromSearch && !videoFromVideosLoaded) {
       return dispatch(youTubeDetails([params.videoid]));
     }
   }
@@ -25,19 +25,19 @@ function findVideoFromSearch(state, videoid) {
 @connect(
   function(state, props) {
     // We prefer the full details from a details request
-    const videoFromDetails = state.youtube.details && find(state.youtube.details.items, (i) => i.id === props.params.videoid);
-    if (videoFromDetails) {
+    const video = find(state.youtube.videosLoaded, (i) => i.id === props.params.videoid);
+    if (video) {
       return {
-        video: videoFromDetails,
-        stats: videoFromDetails.statistics,
+        video: video,
+        stats: video.statistics,
         favorites: state.favorites.data
       };
     }
     // Try from search results as a backup
-    const video = findVideoFromSearch(state, props.params.videoid);
+    const videoFromSearch = findVideoFromSearch(state, props.params.videoid);
     const stats = state.youtube.stats && state.youtube.stats[props.params.videoid];
     return {
-      video: video,
+      video: videoFromSearch,
       stats: stats,
       favorites: state.favorites.data,
       fromSearchResults: 1
@@ -67,7 +67,6 @@ export default class ViewVideo extends Component {
   render() {
     const { video, stats, params, favorites } = this.props;
     const isFavorite = includes(favorites, params.videoid);
-
     const favoriteButton = <button className="btn btn-primary" onClick={() => this.props.addToFavorites(params.videoid)}><span className="fa fa-star" /> Add to Favorites</button>;
     const unFavoriteButton = <button className="btn btn-danger" onClick={() => this.props.removeFromFavorites(params.videoid)}><span className="fa fa-star" /> Remove from Favorites</button>;
 

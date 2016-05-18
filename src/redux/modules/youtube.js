@@ -1,4 +1,4 @@
-import { zipObject, map, clone } from 'lodash';
+import { zipObject, map, clone, union } from 'lodash';
 
 const SEARCH = 'youtube/SEARCH';
 const SEARCH_SUCCESS = 'youtube/SEARCH_SUCCESS';
@@ -59,7 +59,7 @@ export default function youtube(state = initialState, action = {}) {
     case DETAILS_SUCCESS:
       return {
         ...state,
-        details: action.result
+        videosLoaded: union(state.videosLoaded, action.result.items)
       };
     case SEARCH:
       return {

@@ -22,7 +22,7 @@ function isSearchLoaded(youtube, query) {
   promise: ({store: {dispatch, getState}}) => {
     const youtube = getState().youtube;
     const query = getState().routing.locationBeforeTransitions.query;
-    if (!isSearchLoaded(youtube, query)) {
+    if (query.q && !isSearchLoaded(youtube, query)) {
       return dispatch(youTubeSearch(query));
     }
   }
@@ -155,6 +155,8 @@ export default class Search extends Component {
       statusText = <p style={{ paddingTop: 30 }}><span className="fa fa-refresh fa-spin fa-fw" /> Searching...</p>;
     } else if (!youtube.searching && youtube.result && !size(youtube.result.items)) {
       statusText = <p>No Videos found</p>;
+    } else if (!youtube.searching && !youtube.result) {
+      statusText = <p>No videos to show yet...</p>;
     }
 
     return (
