@@ -1,8 +1,9 @@
 import React, { Component, PropTypes } from 'react';
 import { asyncConnect } from 'redux-async-connect';
 import { connect } from 'react-redux';
-import { find } from 'lodash';
+import { find, includes } from 'lodash';
 import { details as youTubeDetails } from 'redux/modules/youtube';
+import { add as addToFavorites, remove as removeFromFavorites } from 'redux/modules/favorites';
 
 import { VideoDetailsBody, Comments } from 'components';
 
@@ -28,7 +29,8 @@ function findVideoFromSearch(state, videoid) {
     if (videoFromDetails) {
       return {
         video: videoFromDetails,
-        stats: videoFromDetails.statistics
+        stats: videoFromDetails.statistics,
+        favorites: state.favorites.data
       };
     }
     // Try from search results as a backup
@@ -37,16 +39,18 @@ function findVideoFromSearch(state, videoid) {
     return {
       video: video,
       stats: stats,
+      favorites: state.favorites.data,
       fromSearchResults: 1
     };
   },
-  { youTubeDetails }
+  { youTubeDetails, addToFavorites, removeFromFavorites }
 )
 export default class ViewVideo extends Component {
   static propTypes = {
     params: PropTypes.object.isRequired,
     video: PropTypes.object.isRequired,
     stats: PropTypes.object.isRequired,
+    favorites: PropTypes.array.isRequired,
     fromSearchResults: PropTypes.number
   }
 
@@ -56,9 +60,17 @@ export default class ViewVideo extends Component {
       this.props.youTubeDetails([this.props.params.videoid]);
     }
   }
-
+  //
+  // addToFavorites() {
+  //   this.props.addToFavorites(this.props.params.videoid);
+  // }
   render() {
-    const { video, stats, params } = this.props;
+    const { video, stats, params, favorites } = this.props;
+    const isFavorite = includes(favorites, params.videoid);
+
+    const favoriteButton = <button className="btn btn-primary" onClick={() => this.props.addToFavorites(params.videoid)}><span className="fa fa-star" /> Add to Favorites</button>;
+    const unFavoriteButton = <button className="btn btn-danger" onClick={() => this.props.removeFromFavorites(params.videoid)}><span className="fa fa-star" /> Remove from Favorites</button>;
+
     return (
       <div className="container">
         <div className="row">
@@ -70,7 +82,10 @@ export default class ViewVideo extends Component {
           </div>
           <div className="col-md-4">
             <div style={{ maxWidth: 560, margin: 'auto' }}>
-              { stats.commentCount > 0 ? <Comments videoid={params.videoid} /> : <p>There are no comments for this video.</p> }
+              { !isFavorite ? favoriteButton : unFavoriteButton }
+              <div style={{paddingTop: 30}}>
+                { stats.commentCount > 0 ? <Comments videoid={params.videoid} /> : <p>There are no comments for this video.</p> }
+              </div>
             </div>
           </div>
         </div>

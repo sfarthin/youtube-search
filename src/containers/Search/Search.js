@@ -61,7 +61,6 @@ export default class Search extends Component {
 
   /* Search without reloading component */
   search() {
-    console.log('asdasd', this.props.youtube);
     if (!this.props.youtube.searching && !isSearchLoaded(this.props.youtube, this.state.query)) this.props.youTubeSearch(this.state.query);
     this.setState({ isTyping: false });
   }
@@ -92,8 +91,6 @@ export default class Search extends Component {
   * When a user starts typing, lets show instant results.
   **/
   keywordChange(e) {
-    console.log('type', this.state.debounceYouTubeSearch);
-
     const keyword = e.target.value;
 
     // Determine new querystring
@@ -154,7 +151,7 @@ export default class Search extends Component {
     }
 
     let statusText = null;
-    if (youtube.search) {
+    if (youtube.searching) {
       statusText = <p style={{ paddingTop: 30 }}><span className="fa fa-refresh fa-spin fa-fw" /> Searching...</p>;
     } else if (!youtube.searching && youtube.result && !size(youtube.result.items)) {
       statusText = <p>No Videos found</p>;

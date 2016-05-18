@@ -1,8 +1,10 @@
 import React, {Component, PropTypes} from 'react';
 import VideoDetailsBody from './videoDetailsBody';
+import { Link } from 'react-router';
 
 export default class VideoDetails extends Component {
   static propTypes = {
+    videoid: PropTypes.string.isRequired,
     video: PropTypes.object.isRequired,
     stats: PropTypes.object
   }
@@ -13,7 +15,7 @@ export default class VideoDetails extends Component {
     return (
       <li className="media">
         <div className="media-left">
-          <img className="media-object" src={img.url} height={img.height} width={img.width} />
+          <Link to={'/view/' + this.props.videoid}><img className="media-object" src={img.url} height={img.height} width={img.width} /></Link>
         </div>
         <VideoDetailsBody {...this.props} />
       </li>

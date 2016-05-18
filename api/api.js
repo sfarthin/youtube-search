@@ -7,6 +7,7 @@ import {mapUrl} from 'utils/url.js';
 import PrettyError from 'pretty-error';
 import http from 'http';
 import SocketIo from 'socket.io';
+import redis from './utils/redis';
 
 const pretty = new PrettyError();
 const app = express();
@@ -16,21 +17,31 @@ const server = new http.Server(app);
 const io = new SocketIo(server);
 io.path('/ws');
 
-app.use(session({
+const sessionMiddleware = session({
   secret: 'ojidq982hrf9fbiuadbfa',
   resave: false,
   saveUninitialized: false,
+  store: new (require('express-sessions'))({
+      storage: 'redis',
+      instance: redis
+  }),
   cookie: { maxAge: 60000 }
-}));
+});
+
+app.use(sessionMiddleware);
 app.use(bodyParser.json());
 
-
 app.use((req, res) => {
+  req.io = io;
+
   const splittedUrlPath = req.url.split('?')[0].split('/').slice(1);
 
   const {action, params} = mapUrl(actions, splittedUrlPath);
 
   if (action) {
+
+    if(!req.session.firstSeen) req.session.firstSeen = Date.now();
+
     action(req, params)
       .then((result) => {
         if (result instanceof Function) {
@@ -51,6 +62,9 @@ app.use((req, res) => {
   }
 });
 
+io.use(function(socket, next) {
+    sessionMiddleware(socket.request, socket.request.res, next);
+});
 
 const bufferSize = 100;
 const messageBuffer = new Array(bufferSize);
@@ -66,7 +80,9 @@ if (config.apiPort) {
   });
 
   io.on('connection', (socket) => {
-    // socket.emit('news', {msg: `'Hello World!' from server`});
+
+    // Lets join a room based on sessionID
+    socket.join(socket.request.sessionID);
 
     socket.on('history', () => {
       for (let index = 0; index < bufferSize; index++) {
@@ -84,6 +100,7 @@ if (config.apiPort) {
       messageIndex++;
       io.emit('msg', data);
     });
+
   });
   io.listen(runnable);
 } else {
