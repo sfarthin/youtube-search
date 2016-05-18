@@ -40,7 +40,7 @@ export default class API {
     }
 
     makeSearchUrl(opts) {
-      const payload = { q: opts.q, part: 'snippet', key: API_KEY, pageToken: opts.pageToken, order: opts.order || 'date', type: 'video' };
+      const payload = { q: opts.q, part: 'snippet', key: API_KEY, pageToken: opts.pageToken, order: opts.order || 'relevance', type: 'video' };
       return 'https://www.googleapis.com/youtube/v3/search?' + queryString.stringify(payload);
     }
 

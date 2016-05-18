@@ -29,7 +29,7 @@ function findVideoFromSearch(state, videoid) {
     if (video) {
       return {
         video: video,
-        stats: video.statistics,
+        stats: video && video.statistics,
         favorites: state.favorites.data
       };
     }

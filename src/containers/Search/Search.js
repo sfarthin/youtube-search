@@ -112,7 +112,7 @@ export default class Search extends Component {
 
     // Determine new querystring
     const query = extend({}, this.state.query, {order: order});
-    if (query.order === 'date') delete query.order;
+    if (query.order === 'relevance') delete query.order;
     delete query.page;
     delete query.pageToken;
 
@@ -177,10 +177,10 @@ export default class Search extends Component {
                 />
             </div>
             <div className="form-group" style={{float: 'right'}}>
-              <select className="form-control" value={this.state.query.order || 'date'} onChange={this.orderChange.bind(this)}>
+              <select className="form-control" value={this.state.query.order || 'relevance'} onChange={this.orderChange.bind(this)}>
+                <option value="relevance">Sort by Relavance</option>
                 <option value="date">Sort by Date</option>
                 <option value="rating">Sort by Rating</option>
-                <option value="relevance">Sort by Relavance</option>
               </select>
             </div>
           </form>
