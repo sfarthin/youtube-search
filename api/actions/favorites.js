@@ -1,11 +1,11 @@
 import redis from '../utils/redis';
-import { union, filter } from 'lodash'
+import { union, filter } from 'lodash';
 
 const redisKey = 'favorites';
 
 // Helper Methods
 function get(userid) {
-  return redis.hgetAsync(redisKey, userid).then((obj) => (obj ? JSON.parse(obj) : []))
+  return redis.hgetAsync(redisKey, userid).then((obj) => (obj ? JSON.parse(obj) : []));
 }
 
 function add(userid, favorite) {

@@ -31,12 +31,10 @@ app.use((req, res) => {
   req.io = io;
 
   const splittedUrlPath = req.url.split('?')[0].split('/').slice(1);
-
   const {action, params} = mapUrl(actions, splittedUrlPath);
 
   if (action) {
-
-    if(!req.session.firstSeen) req.session.firstSeen = Date.now();
+    if (!req.session.firstSeen) req.session.firstSeen = Date.now();
     req.session.save();
 
     action(req, params)
@@ -60,7 +58,7 @@ app.use((req, res) => {
 });
 
 io.use(function(socket, next) {
-    sessionMiddleware(socket.request, socket.request.res, next);
+  sessionMiddleware(socket.request, socket.request.res, next);
 });
 
 const bufferSize = 100;
@@ -77,7 +75,6 @@ if (config.apiPort) {
   });
 
   io.on('connection', (socket) => {
-
     // Lets join a room based on sessionID
     socket.join(socket.request.sessionID);
 
@@ -97,7 +94,6 @@ if (config.apiPort) {
       messageIndex++;
       io.emit('msg', data);
     });
-
   });
   io.listen(runnable);
 } else {

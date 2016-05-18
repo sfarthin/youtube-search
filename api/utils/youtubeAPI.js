@@ -6,9 +6,9 @@ import moment from 'moment';
 
 const API_KEY = 'AIzaSyCWDpnGOueheazoTOhbH_26btkZ9MImHPU';
 
-class SimpleCache {
+const cacheHours = 1;
 
-  static cacheHours = 1
+class SimpleCache {
 
   // constructor may take a prefix
   constructor() {
@@ -17,7 +17,7 @@ class SimpleCache {
 
   get(key, cb) {
     // Lets remove any old entries
-    this.cache = filter(this.cache, (e) => moment(e.date) > moment().subtract(cacheHours, "hour"));
+    this.cache = filter(this.cache, (e) => moment(e.date) > moment().subtract(cacheHours, 'hour'));
 
     // Return a cached entry if its less than an hour.
     cb(this.cache[key] && this.cache[key].val);
@@ -60,7 +60,7 @@ export default class API {
     // }
 
     makeDetailsUrl(opts) {
-      const payload = { id: opts.ids.join(","), part: 'snippet,statistics', key: API_KEY };
+      const payload = { id: opts.ids.join(','), part: 'snippet,statistics', key: API_KEY };
       return 'https://www.googleapis.com/youtube/v3/videos?' + queryString.stringify(payload);
     }
 
